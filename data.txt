@@ -1,0 +1,4 @@
+studentID,firstName,lastName,score
+123456,Slappy,Smith,82
+173625,Rooster,Santos,95
+726718,Shmoopy,Sauce,72
