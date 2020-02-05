@@ -7,20 +7,18 @@
 
 #define MAXCHAR 1000
 
-int add()
+int add(int ID, char *Fname, char *Lname, int score)
 {
-//    printf("adding");
     FILE *fp;
-    char str[MAXCHAR];
     char* filename = "data.csv";
 
-    fp = fopen(filename, "r");
+    fp = fopen(filename, "a");
     if (fp == NULL){
         printf("Could not open file %s",filename);
         return 1;
     }
-    while (fgets(str, MAXCHAR, fp) != NULL)
-        printf("%s", str);
+
+    fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
     fclose(fp);
     return 0;
 }
@@ -75,7 +73,7 @@ int display_all()
 
 int main()
 {
-//    add();
+    add(728716, "Bobby", "Blippy", 85);
     display_all();
 //  int welcomeSocket, newSocket;
 //  char buffer[1024];
