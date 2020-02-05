@@ -18,7 +18,8 @@ The goal of this project is to gain a fundamental understanding of the interacti
 
 ## Usage
 ```shell
-todo
+make
+make clean
 ```
 
 
