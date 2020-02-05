@@ -12,7 +12,7 @@ int add()
 //    printf("adding");
     FILE *fp;
     char str[MAXCHAR];
-    char* filename = "data.txt";
+    char* filename = "data.csv";
 
     fp = fopen(filename, "r");
     if (fp == NULL){
@@ -27,7 +27,7 @@ int add()
 
 int display_all()
 {
-    FILE *fp = fopen("data.txt", "r");
+    FILE *fp = fopen("data.csv", "r");
 
     if (!fp) {
         printf("Can't open file\n");
