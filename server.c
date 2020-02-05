@@ -4,6 +4,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <stdbool.h>
+#include<stdlib.h>
+
 
 #define MAXCHAR 1000
 
@@ -20,6 +23,75 @@ int add(int ID, char *Fname, char *Lname, int score)
 
     fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
     fclose(fp);
+    return 0;
+}
+
+int delete(int ID)
+{
+    FILE *fp1, *fp2;
+    char* filename = "data.csv";
+
+    fp1 = fopen(filename, "r");
+    if (!fp1)
+    {
+        printf(" File not found or unable to open the input file!!\n");
+        return 0;
+    }
+    fp2 = fopen("temp.csv", "w"); // open the temporary file in write mode
+    if (!fp2)
+    {
+        printf("Unable to open a temporary file to write!!\n");
+        fclose(fp1);
+        return 0;
+    }
+
+//    // copy all contents to the temporary file except the specific line
+//    while (!feof(fp1))
+//    {
+//        strcpy(str, "\0");
+//        fgets(str, MAX, fp1);
+//        if (!feof(fp1))
+//        {
+//            char *field = strtok(buf, ",");
+//
+//            ctr++;
+//            /* skip the line at given line number */
+//            if (ctr != lno)
+//            {
+//                fprintf(fptr2, "%s", str);
+//            }
+//        }
+//    }
+
+    char buf[1024];
+    int row_count = 0;
+    int field_count = 0;
+    bool IDfound = false;
+    while (fgets(buf, 1024, fp1))
+    {
+        field_count = 0;
+        row_count++;
+
+        if (row_count == 1) {
+            continue;
+        }
+
+        char *field = strtok(buf, ",");
+        while (field) {
+            // only check the first field for the ID
+            if (field_count == 0) {
+                int fieldID = atoi(field); //cast string to int
+                if (fieldID == ID) {
+                    printf("FOUND: %s\n", field);
+                }
+            }
+            field = strtok(NULL, ",");
+
+            field_count++;
+        }
+    }
+
+    fclose(fp1);
     return 0;
 }
 
@@ -73,8 +145,9 @@ int display_all()
 
 int main()
 {
-    add(728716, "Bobby", "Blippy", 85);
-    display_all();
+    delete(623734);
+//    add(728716, "Bobby", "Blippy", 85);
+//    display_all();
 //  int welcomeSocket, newSocket;
 //  char buffer[1024];
 //  struct sockaddr_in serverAddr;
