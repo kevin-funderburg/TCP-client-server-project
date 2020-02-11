@@ -1,5 +1,5 @@
 server:
-	 gcc -Wall server.c -o server
-	 gcc -Wall client.c -o client
+	 gcc -Wall -std=c99 server.c -o server
+	 gcc -Wall -std=c99 client.c -o client
 clean:
 	@rm -rf server client

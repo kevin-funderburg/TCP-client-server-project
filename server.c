@@ -164,7 +164,7 @@ int main()
     char buffer[1024];
     struct sockaddr_in serverAddr, clientAddr;
     struct sockaddr_storage serverStorage;
-
+    socklen_t addr_size;
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
     welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -190,6 +190,7 @@ int main()
         printf("Error\n");
 
     /*---- Accept call creates a new socket for the incoming connection ----*/
+    addr_size = sizeof serverStorage;
     clilen = sizeof(clientAddr);
 
     newSocket = accept(welcomeSocket, (struct sockaddr *) &clientAddr, &clilen);
