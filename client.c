@@ -16,6 +16,7 @@ void error(char *msg)
     perror(msg);
     exit(0);
 }
+#include <string.h>
 
 int main(){
     int clientSocket, n;
@@ -53,12 +54,33 @@ int main(){
         write(clientSocket, buffer, sizeof(buffer));
         bzero(buffer, sizeof(buffer));
         read(clientSocket, buffer, sizeof(buffer));
+        printf("From Server : %s", buffer);
 
         if ((strncmp(buffer, "exit", 4)) == 0) {
             printf("Client Exit...\n");
             break;
         }
     }
+
+//    printf("Please enter the message: ");
+//    bzero(buffer,256);
+//    fgets(buffer,255,stdin);
+//    n = write(clientSocket,buffer,strlen(buffer));
+//    if (n < 0)
+//        error("ERROR writing to socket");
+//
+//    bzero(buffer,256);
+//
+//    /*---- Read the message from the server into the buffer ----*/
+//    n = read(clientSocket, buffer, 1024);
+////    recv(clientSocket, buffer, 1024, 0);
+//    if (n < 0)
+//        error("ERROR reading from socket");
+//
+//    printf("%s\n",buffer);
+
+    /*---- Print the received message ----*/
+//    printf("Data received: %s",buffer);
 
     return 0;
 }

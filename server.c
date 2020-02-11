@@ -1,6 +1,18 @@
 /****************** SERVER CODE ****************/
-#include "server.h"
 
+//#include <stdio.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <string.h>
+//#include <stdbool.h>
+//#include <stdlib.h>
+//#include <sys/types.h>
+#include "server.h"
+#define MAX 150
+//#define PORT 8080
+//#define SA struct sockaddr
+
+#define MAXCHAR 1024
 char* datafile = "data.csv";
 int studentCount;
 struct student students[100];
@@ -146,20 +158,11 @@ void showStudent(struct student s)
     strcat(serverMessage, score);
 }
 
+
 void error(char *msg)
 {
     perror(msg);
     exit(1);
-}
-
-void showusage()
-{
-    snprintf(serverMessage, sizeof(serverMessage), "Usage: [add] [display_all] [showscores] [delete]\n\n"
-                                                   "arguments:\n"
-                                                   "\tadd: studentID firstName lastName score\n"
-                                                   "\tdisplay_all: none\n"
-                                                   "\tshowscores: score\n"
-                                                   "\tdelete: studentID\n");
 }
 
 int main()
@@ -169,11 +172,12 @@ int main()
     char buffer[1024];
     struct sockaddr_in serverAddr, clientAddr;
     struct sockaddr_storage serverStorage;
-    socklen_t addr_size;
+//    socklen_t addr_size;
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
     welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (welcomeSocket < 0) error("ERROR opening socket");
+    if (welcomeSocket < 0)
+        error("ERROR opening socket");
 
     /*---- Configure settings of the server address struct ----*/
     /* Address family = Internet */
@@ -195,7 +199,7 @@ int main()
         printf("Error\n");
 
     /*---- Accept call creates a new socket for the incoming connection ----*/
-    addr_size = sizeof serverStorage;
+//    addr_size = sizeof serverStorage;
     clilen = sizeof(clientAddr);
 
     newSocket = accept(welcomeSocket, (struct sockaddr *) &clientAddr, &clilen);
@@ -209,6 +213,8 @@ int main()
 
     char args[10][25];
     char * pch;
+    printf ("Splitting string \"%s\" into tokens:\n",buffer);
+
     pch = strtok (buffer," ");
     strcpy(args[0], pch);
     int argc = 0;
