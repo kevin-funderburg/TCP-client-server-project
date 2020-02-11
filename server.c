@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#define MAX 80
+#define MAX 150
 #define PORT 8080
 #define SA struct sockaddr
 
@@ -172,7 +172,7 @@ void showStudent(struct student s)
     printf("Student ID:\t%d\n", s.id);
     printf("First Name:\t%s\n", s.Fname);
     printf("Last Name:\t%s\n", s.Lname);
-    printf("Grade:\t%d\n", s.score);
+    printf("Grade:\t\t%d\n", s.score);
     printf("\n");
 }
 
@@ -207,61 +207,197 @@ void func(int sockfd)
     }
 }
 
+void error(char *msg)
+{
+    perror(msg);
+    exit(1);
+}
+
 int main()
 {
-//    delete(623734);
-//    add(738210, "Francois", "Butter", 55);
-//    display_all();
-//    display(82);
-    // Driver function
-    int sockfd, connfd, len;
-    struct sockaddr_in servaddr, cli;
+    int n, clilen;
+    int welcomeSocket, newSocket;
+    char buffer[1024];
+    struct sockaddr_in serverAddr, clientAddr;
+    struct sockaddr_storage serverStorage;
+    socklen_t addr_size;
 
-    // socket create and verification
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        printf("socket creation failed...\n");
-        exit(0);
-    }
+    /*---- Create the socket. The three arguments are: ----*/
+    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+    welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
+    if (welcomeSocket < 0)
+        error("ERROR opening socket");
+
+    /*---- Configure settings of the server address struct ----*/
+    /* Address family = Internet */
+    serverAddr.sin_family = AF_INET;
+    /* Set port number, using htons function to use proper byte order */
+    serverAddr.sin_port = htons(7891);
+    /* Set IP address to localhost */
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    /* Set all bits of the padding field to 0 */
+    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+
+    /*---- Bind the address struct to the socket ----*/
+    bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+
+    /*---- Listen on the socket, with 5 max connection requests queued ----*/
+    if(listen(welcomeSocket,5)==0)
+        printf("Listening\n");
     else
-        printf("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
+        printf("Error\n");
 
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(PORT);
+    /*---- Accept call creates a new socket for the incoming connection ----*/
+    addr_size = sizeof serverStorage;
+    clilen = sizeof(clientAddr);
 
-    // Binding newly created socket to given IP and verification
-    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
-        printf("socket bind failed...\n");
-        exit(0);
+//    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+//    newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+    newSocket = accept(welcomeSocket, (struct sockaddr *) &clientAddr, &clilen);
+    if (newSocket < 0)
+        error("ERROR on accept");
+
+    bzero(buffer,256);
+    n = read(newSocket,buffer,255);
+    if (n < 0) error("ERROR reading from socket");
+    printf("Here is the message: %s\n",buffer);
+
+    if (strncmp("add", buffer, 3) == 0)
+    {
+        int x = 0;
+        char prompt[50];
+        struct student s;
+        printf("Adding a student to the database\n");
+        while (x < 4)
+        {
+            bzero(buffer, MAX);
+
+            // read the message from client and copy it in buffer
+            n = read(newSocket, buffer, sizeof(buffer));
+            switch (x)
+            {
+                case 0:
+                    strcpy(prompt, "Enter the student ID: ");
+                    s.id = atoi(buffer);
+                    printf("s.score is: %d\n", s.id);
+                    break;
+                case 1:
+                    strcpy(prompt, "Enter the first name: ");
+                    strcpy(s.Fname, buffer);
+                    printf("s.Fname is: %s\n", s.Fname);
+                    break;
+                case 2:
+                    strcpy(prompt, "Enter the last name: ");
+                    strcpy(s.Lname, buffer);
+                    printf("s.Lname is: %s\n", s.Lname);
+                    break;
+                case 3:
+                    strcpy(prompt, "Enter the score: ");
+                    s.score = atoi(buffer);
+                    printf("s.score is: %d\n", s.score);
+                    break;
+            }
+            // print buffer which contains the client contents
+//            printf("From client: %s\t To client : ", buffer);
+            bzero(buffer, MAX);
+            n = 0;
+
+            // copy server message in the buffer
+//            while ((buffer[n++] = getchar()) != '\n')
+//                ;
+            strcpy(buffer, prompt);
+
+            // and send that buffer to client
+            n = write(newSocket, buffer, sizeof(buffer));
+            if (n < 0) error("ERROR writing to socket");
+
+
+            x++;
+        }
+        showStudent(s);
+
+    } else if (strncmp("display_all", buffer, 11) == 0) {
+        display_all();
     }
-    else
-        printf("Socket successfully binded..\n");
+    else if (strncmp("showscores", buffer, 10 ) == 0)
+    {
+        int thelen = strlen(buffer);
+        printf("thelen: %d\n", thelen);
+        printf("score is: ");
+        int strt = 10;
+        int end = thelen-2;
+        char thescore[2];
+        printf("buffer[11][12]: %c%c", buffer[11], buffer[12]);
+        if (thelen == 14) {
 
-    // Now server is ready to listen and verification
-    if ((listen(sockfd, 5)) != 0) {
-        printf("Listen failed...\n");
-        exit(0);
+            thescore[0] = buffer[11];
+            thescore[1] = buffer[12];
+        } else if (thelen == 15) {
+            char thescore[3];
+            thescore[0] = buffer[11];
+            thescore[1] = buffer[12];
+            thescore[1] = buffer[13];
+        }
+        int score = atoi(thescore);
+        printf("showing scores greater than: %c%c\n", thescore[0],thescore[1]);
+//        for (int q = strt; q < end; ++q) {
+//            printf(buffer[q]);
+//        }
+//        printf("\n");
+
+//        char thescore[strlen(buffer-11)];
+//        for (int q = strlen(buffer-11); q < strlen(buffer); q++) {
+//            thescore[q] = buffer[q];
+//        }
+
+//        int score = -1;
+//        printf("Showing scores greater than:%d\n", atoi(thescore));
+
+        bzero(buffer, MAX);
+        n = 0;
+        strcpy(buffer, "enter the score: ");
+        // and send that buffer to client
+        n = write(newSocket, buffer, sizeof(buffer));
+        if (n < 0) error("ERROR writing to socket");
+        bzero(buffer, MAX);
+        // read the message from client and copy it in buffer
+        n = read(newSocket, buffer, sizeof(buffer));
+        score = atoi(buffer);
+        if (score < 0 || score > 100)
+            error("invalid score");
+        printf("showing scores greater than: %d\n", score);
+        display(score);
+
     }
-    else
-        printf("Server listening..\n");
-    len = sizeof(cli);
+    else if (strncmp("delete", buffer, 6 ) == 0)
+    {
+        int id = -1;
+        printf("Showing scores\n");
+        bzero(buffer, MAX);
+        n = 0;
+        strcpy(buffer, "enter the id of the student to delete: ");
+        // and send that buffer to client
+        n = write(newSocket, buffer, sizeof(buffer));
+        if (n < 0) error("ERROR writing to socket");
 
-    // Accept the data packet from client and verification
-    connfd = accept(sockfd, (SA*)&cli, &len);
-    if (connfd < 0) {
-        printf("server acccept failed...\n");
-        exit(0);
+        bzero(buffer, MAX);
+        // read the message from client and copy it in buffer
+        n = read(newSocket, buffer, sizeof(buffer));
+        id = atoi(buffer);
+        if (id < 0)
+            error("invalid score");
+        printf("deleting student with id: %d\n", id);
+        delete(id);
     }
-    else
-        printf("server acccept the client...\n");
+    // if msg contains "Exit" then server exit and end.
+    else if (strncmp("exit", buffer, 4) == 0) {
+        printf("Server Exit...\n");
+//        break;
+    }
+    if (n < 0) error("ERROR writing to socket");
+//    /*---- Send message to the socket of the incoming connection ----*/
+//    strcpy(buffer,"Hello World\n");
+//    send(newSocket,buffer,13,0);
 
-    // Function for chatting between client and server
-    func(connfd);
-
-    // After chatting close the socket
-    close(sockfd);
     return 0;
 }
