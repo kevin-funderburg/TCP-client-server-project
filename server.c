@@ -207,6 +207,15 @@ void func(int sockfd)
     }
 }
 
+void parse(char *str[])
+{
+    char *temp;
+    char *field = strtok(str, " ");
+
+//    for (int i = 0; i < strlen(str); ++i) {
+//        temp[i] = str[i];
+//    }
+}
 void error(char *msg)
 {
     perror(msg);
@@ -215,6 +224,44 @@ void error(char *msg)
 
 int main()
 {
+    char buf[] = "add 192893 kecin davis 84";
+    char args[10][25];
+    char * pch;
+    printf ("Splitting string \"%s\" into tokens:\n",buf);
+
+    pch = strtok (buf," ");
+    strcpy(args[0], pch);
+    int argc = 0;
+    while (pch != NULL)
+    {
+        argc++;
+        printf ("%s\n",pch);
+        pch = strtok (NULL, " ,.-");
+        if (pch != NULL)
+            strcpy(args[argc], pch);
+    }
+    if (strncmp("add", args[0], 3) == 0) {
+        if (argc < 5) {
+            printf("expected 4 arguments and got %d", argc);
+            return 0;
+        }
+        add(atoi(args[1]), args[2], args[3], atoi(args[4]));
+    } else if (strncmp("display_all", args[0], 11) == 0) {
+        display_all();
+    } else if (strncmp("showscores", args[0], 10 ) == 0) {
+        if (argc < 2) {
+            printf("expected 2 arguments and got %d", argc);
+            return 0;
+        }
+        display(atoi(args[1]));
+    } else if (strncmp("delete", args[0], 6 ) == 0) {
+        if (argc < 2) {
+            printf("expected 2 arguments and got %d", argc);
+            return 0;
+        }
+        display(atoi(args[1]));
+    }
+    return 0;
     int n, clilen;
     int welcomeSocket, newSocket;
     char buffer[1024];
@@ -389,7 +436,7 @@ int main()
         printf("deleting student with id: %d\n", id);
         delete(id);
     }
-    // if msg contains "Exit" then server exit and end.
+        // if msg contains "Exit" then server exit and end.
     else if (strncmp("exit", buffer, 4) == 0) {
         printf("Server Exit...\n");
 //        break;
