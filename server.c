@@ -1,39 +1,5 @@
 /****************** SERVER CODE ****************/
-
-#include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#define MAX 150
-#define PORT 8080
-#define SA struct sockaddr
-
-struct student
-{
-    int id, score;
-    char Fname[25], Lname[25];
-};
-
-int add(int ID, char *Fname, char *Lname, int score);
-int delete(int ID);
-int display_all();
-int display(int score);
-int getStudentData();
-bool studentExists(int ID);
-void showStudent(struct student s);
-void func(int sockfd);
-void concatenate_string(char *original, char *add);
-void error(char *msg);
-
-#define MAXCHAR 1024
-char* datafile = "data.csv";
-int studentCount;
-struct student students[100];
-char serverMessage[MAXCHAR*2];
-int welcomeSocket, newSocket;
+#include "server.h"
 
 void init()
 {
@@ -49,7 +15,6 @@ int add(int ID, char *Fname, char *Lname, int score) {
     }
     getStudentData();
     if (!studentExists(ID)) {
-//        delete(ID);
         fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
         studentCount++;
         students[studentCount].id = ID;
@@ -64,8 +29,6 @@ int add(int ID, char *Fname, char *Lname, int score) {
 int delete(int ID)
 {
     FILE *fp1, *fp2;
-    char str[MAXCHAR];
-
     fp1 = fopen(datafile, "r");
     if (!fp1) {
         printf(" File not found or unable to open the input file!!\n");
@@ -82,7 +45,6 @@ int delete(int ID)
     fprintf(fp2, "%s", "studentID,firstName,lastName,score\n");
     for (int i = 0; i < studentCount; ++i) {
         if (students[i].id != ID) {
-//            printf("%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
             fprintf(fp2, "%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
         }
     }
@@ -171,7 +133,7 @@ void showStudent(struct student s)
     snprintf(id, sizeof(id), "Student ID:\t%d\n", s.id);
     snprintf(fname, sizeof(fname), "First Name:\t%s\n", s.Fname);
     snprintf(lname, sizeof(lname), "First Name:\t%s\n", s.Lname);
-    snprintf(score, sizeof(score), "Grade:\t\t%d\n", s.score);
+    snprintf(score, sizeof(score), "Grade:\t\t%d\n\n", s.score);
 
     strcat(serverMessage, id);
     strcat(serverMessage, fname);
@@ -179,50 +141,20 @@ void showStudent(struct student s)
     strcat(serverMessage, score);
 }
 
-// Function designed for chat between client and server.
-void func(int sockfd)
-{
-    struct student s;
-    char buff[MAXCHAR];
-    int n;
-    // infinite loop for chat
-    for (;;) {
-        bzero(buff, MAXCHAR);
-
-        // read the message from client and copy it in buffer
-        read(sockfd, buff, sizeof(buff));
-        // print buffer which contains the client contents
-        printf("From client: %s\t To client : ", buff);
-        bzero(buff, MAXCHAR);
-        n = 0;
-        // copy server message in the buffer
-        while ((buff[n++] = getchar()) != '\n')
-            ;
-
-        // and send that buffer to client
-        write(sockfd, buff, sizeof(buff));
-
-        // if msg contains "Exit" then server exit and chat ended.
-        if (strncmp("exit", buff, 4) == 0) {
-            printf("Server Exit...\n");
-            break;
-        }
-    }
-}
-
-void parse(char *str[])
-{
-    char *temp;
-    char *field = strtok(str, " ");
-
-//    for (int i = 0; i < strlen(str); ++i) {
-//        temp[i] = str[i];
-//    }
-}
 void error(char *msg)
 {
     perror(msg);
     exit(1);
+}
+
+void showusage()
+{
+    snprintf(serverMessage, sizeof(serverMessage), "Usage: [add] [display_all] [showscores] [delete]\n\n"
+                                                   "arguments:\n"
+                                                   "\tadd: studentID firstName lastName score\n"
+                                                   "\tdisplay_all: none\n"
+                                                   "\tshowscores: score\n"
+                                                   "\tdelete: studentID\n");
 }
 
 int main()
@@ -232,12 +164,11 @@ int main()
     char buffer[1024];
     struct sockaddr_in serverAddr, clientAddr;
     struct sockaddr_storage serverStorage;
-    socklen_t addr_size;
+
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
     welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (welcomeSocket < 0)
-        error("ERROR opening socket");
+    if (welcomeSocket < 0) error("ERROR opening socket");
 
     /*---- Configure settings of the server address struct ----*/
     /* Address family = Internet */
@@ -259,11 +190,8 @@ int main()
         printf("Error\n");
 
     /*---- Accept call creates a new socket for the incoming connection ----*/
-    addr_size = sizeof serverStorage;
     clilen = sizeof(clientAddr);
 
-//    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-//    newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
     newSocket = accept(welcomeSocket, (struct sockaddr *) &clientAddr, &clilen);
     if (newSocket < 0)
         error("ERROR on accept");
@@ -275,8 +203,6 @@ int main()
 
     char args[10][25];
     char * pch;
-    printf ("Splitting string \"%s\" into tokens:\n",buffer);
-
     pch = strtok (buffer," ");
     strcpy(args[0], pch);
     int argc = 0;
