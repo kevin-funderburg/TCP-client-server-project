@@ -7,13 +7,24 @@
 #include <stdbool.h>
 #include<stdlib.h>
 
+struct student
+{
+    int id, score;
+    char Fname[25], Lname[25];
+};
+
 int add(int ID, char *Fname, char *Lname, int score);
 int delete(int ID);
 int getRowNum(int rowID);
 int display_all();
+int display(int score);
+int getStudentData();
+void showStudent(struct student s);
 
 #define MAXCHAR 1024
 char* datafile = "data.csv";
+int studentCount;
+struct student students[100];
 
 int add(int ID, char *Fname, char *Lname, int score)
 {
@@ -48,22 +59,31 @@ int delete(int ID)
         return 0;
     }
 
-    int ctr = 0;
-    int rowNum = getRowNum(ID);
-    // copy all contents to the temporary file except the specific line
-    while (!feof(fp1))
-    {
-        strcpy(str, "\0");
-        fgets(str, MAXCHAR, fp1);
-        if (!feof(fp1)) {
-            ctr++;
-            /* skip the line at given line number */
-            if (ctr != rowNum) {
-                printf("line to be copied: %s", str);
-                fprintf(fp2, "%s", str);
-            }
+    getStudentData();
+    fprintf(fp2, "%s", "studentID,firstName,lastName,score\n");
+    for (int i = 0; i < studentCount; ++i) {
+        if (students[i].id != ID) {
+            printf("%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
+            fprintf(fp2, "%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
         }
     }
+
+//    int ctr = 0;
+//    int rowNum = getRowNum(ID);
+//    // copy all contents to the temporary file except the specific line
+//    while (!feof(fp1))
+//    {
+//        strcpy(str, "\0");
+//        fgets(str, MAXCHAR, fp1);
+//        if (!feof(fp1)) {
+//            ctr++;
+//            /* skip the line at given line number */
+//            if (ctr != rowNum) {
+//                printf("line to be copied: %s", str);
+//                fprintf(fp2, "%s", str);
+//            }
+//        }
+//    }
 
     fclose(fp1);
     fclose(fp2);
@@ -74,76 +94,105 @@ int delete(int ID)
 
 int getRowNum(int rowID)
 {
-    FILE *fp1;
-    char buf[MAXCHAR];
-    int rowNum = 0;
-
-    fp1 = fopen(datafile, "r");
-    if (!fp1) {
-        printf(" File not found or unable to open the input file!!\n");
-        return 0;
+    getStudentData();
+    for (int i = 0; i < studentCount; ++i) {
+        if (students[i].id == rowID) {
+            return ++i;
+        }
     }
-    while (fgets(buf, MAXCHAR, fp1)) {
-        rowNum++;
-        char *field = strtok(buf, ",");
-        if (atoi(field) == rowID) return rowNum;
-    }
+//    FILE *fp1;
+//    char buf[MAXCHAR];
+//    int rowNum = 0;
+//
+//    fp1 = fopen(datafile, "r");
+//    if (!fp1) {
+//        printf(" File not found or unable to open the input file!!\n");
+//        return 0;
+//    }
+//    while (fgets(buf, MAXCHAR, fp1)) {
+//        rowNum++;
+//        char *field = strtok(buf, ",");
+//        if (atoi(field) == rowID) return rowNum;
+//    }
     return -1;
 }
 
 int display_all()
 {
-    FILE *fp = fopen(datafile, "r");
+    getStudentData();
+    for (int i = 0; i < studentCount; ++i) {
+        showStudent(students[i]);
+    }
+    return 0;
+}
 
+int display(int score)
+{
+    getStudentData();
+    for (int i = 0; i < studentCount; ++i) {
+        if (students[i].score >= score) {
+            showStudent(students[i]);
+        }
+    }
+}
+
+int getStudentData()
+{
+    FILE *fp = fopen(datafile, "r");
     if (!fp) {
         printf("Can't open file\n");
         return 0;
     }
-
     char buf[MAXCHAR];
-    int row_count = 0;
+
+    studentCount = 0;
     int field_count = 0;
+    int row_count = 0;
     while (fgets(buf, MAXCHAR, fp)) {
         field_count = 0;
         row_count++;
 
-        if (row_count == 1) {
-            continue;
-        }
+        if (row_count == 1) continue;
+        studentCount++;
 
         char *field = strtok(buf, ",");
-        while (field) {
-            if (field_count == 0) {
-                printf("Student ID:\t");
+        while (field)
+        {
+            switch (field_count)
+            {
+                case 0: students[row_count-2].id = atoi(field);
+                    break;
+                case 1: strcpy(students[row_count-2].Fname, field);
+                    break;
+                case 2: strcpy(students[row_count-2].Lname, field);
+                    break;
+                case 3: students[row_count-2].score = atoi(field);
+                    break;
+                default: printf("invalid field_count");
+                    return -1;
             }
-            if (field_count == 1) {
-                printf("First Name:\t");
-            }
-            if (field_count == 2) {
-                printf("Last Name:\t");
-            }
-            if (field_count == 3) {
-                printf("Grade:\t\t");
-            }
-
-            printf("%s\n", field);
             field = strtok(NULL, ",");
-
             field_count++;
         }
-        printf("\n");
     }
-
-    fclose(fp);
-
     return 0;
+}
+
+void showStudent(struct student s)
+{
+    printf("Student ID:\t%d\n", s.id);
+    printf("First Name:\t%s\n", s.Fname);
+    printf("Last Name:\t%s\n", s.Lname);
+    printf("Grade:\t%d\n", s.score);
+    printf("\n");
 }
 
 int main()
 {
-//    delete(623734);
-    add(728716, "Bobby", "Blippy", 85);
+    delete(623734);
+//    add(728716, "Bobby", "Blippy", 85);
 //    display_all();
+//    display(82);
 //  int welcomeSocket, newSocket;
 //  char buffer[1024];
 //  struct sockaddr_in serverAddr;
