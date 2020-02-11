@@ -19,6 +19,7 @@ int getRowNum(int rowID);
 int display_all();
 int display(int score);
 int getStudentData();
+bool studentExists(int ID);
 void showStudent(struct student s);
 
 #define MAXCHAR 1024
@@ -26,19 +27,29 @@ char* datafile = "data.csv";
 int studentCount;
 struct student students[100];
 
-int add(int ID, char *Fname, char *Lname, int score)
+void init()
 {
+    studentCount = 0;
+}
+
+int add(int ID, char *Fname, char *Lname, int score) {
     FILE *fp;
     fp = fopen(datafile, "a");
-    if (fp == NULL) {
+    if (!fp) {
         printf("Could not open file %s", datafile);
         return 1;
     }
-    if (getRowNum(ID) != -1)
-        delete(ID);
-
-    fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
-    fclose(fp);
+    getStudentData();
+    if (!studentExists(ID)) {
+//        delete(ID);
+        fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
+        studentCount++;
+        students[studentCount].id = ID;
+        strcpy(students[studentCount].Fname, Fname);
+        strcpy(students[studentCount].Lname, Lname);
+        students[studentCount].score = score;
+        fclose(fp);
+    }
     return 0;
 }
 
@@ -63,77 +74,50 @@ int delete(int ID)
     fprintf(fp2, "%s", "studentID,firstName,lastName,score\n");
     for (int i = 0; i < studentCount; ++i) {
         if (students[i].id != ID) {
-            printf("%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
+//            printf("%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
             fprintf(fp2, "%d,%s,%s,%d\n", students[i].id, students[i].Fname, students[i].Lname, students[i].score);
         }
     }
-
-//    int ctr = 0;
-//    int rowNum = getRowNum(ID);
-//    // copy all contents to the temporary file except the specific line
-//    while (!feof(fp1))
-//    {
-//        strcpy(str, "\0");
-//        fgets(str, MAXCHAR, fp1);
-//        if (!feof(fp1)) {
-//            ctr++;
-//            /* skip the line at given line number */
-//            if (ctr != rowNum) {
-//                printf("line to be copied: %s", str);
-//                fprintf(fp2, "%s", str);
-//            }
-//        }
-//    }
 
     fclose(fp1);
     fclose(fp2);
     remove(datafile);  		// remove the original file
     rename("temp.csv", datafile); 	// rename the temporary file to original name
+    studentCount--;
     return 0;
 }
 
 int getRowNum(int rowID)
 {
     getStudentData();
-    for (int i = 0; i < studentCount; ++i) {
-        if (students[i].id == rowID) {
+    for (int i = 0; i < studentCount; ++i)
+        if (students[i].id == rowID)
             return ++i;
-        }
-    }
-//    FILE *fp1;
-//    char buf[MAXCHAR];
-//    int rowNum = 0;
-//
-//    fp1 = fopen(datafile, "r");
-//    if (!fp1) {
-//        printf(" File not found or unable to open the input file!!\n");
-//        return 0;
-//    }
-//    while (fgets(buf, MAXCHAR, fp1)) {
-//        rowNum++;
-//        char *field = strtok(buf, ",");
-//        if (atoi(field) == rowID) return rowNum;
-//    }
     return -1;
 }
 
 int display_all()
 {
     getStudentData();
-    for (int i = 0; i < studentCount; ++i) {
+    for (int i = 0; i < studentCount; ++i)
         showStudent(students[i]);
-    }
     return 0;
 }
 
 int display(int score)
 {
     getStudentData();
-    for (int i = 0; i < studentCount; ++i) {
-        if (students[i].score >= score) {
+    for (int i = 0; i < studentCount; ++i)
+        if (students[i].score >= score)
             showStudent(students[i]);
-        }
-    }
+    return -1;
+}
+
+bool studentExists(int ID)
+{
+    for (int i = 0; i < studentCount; ++i)
+        if (students[i].id == ID) return true;
+    return false;
 }
 
 int getStudentData()
@@ -189,8 +173,8 @@ void showStudent(struct student s)
 
 int main()
 {
-    delete(623734);
-//    add(728716, "Bobby", "Blippy", 85);
+//    delete(623734);
+//    add(738210, "Francois", "Butter", 55);
 //    display_all();
 //    display(82);
 //  int welcomeSocket, newSocket;
