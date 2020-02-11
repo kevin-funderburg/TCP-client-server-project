@@ -1,6 +1,11 @@
 /****************** SERVER CODE ****************/
 #include "server.h"
 
+char* datafile = "data.csv";
+int studentCount;
+struct student students[100];
+char serverMessage[MAXCHAR];
+
 void init()
 {
     studentCount = 0;
