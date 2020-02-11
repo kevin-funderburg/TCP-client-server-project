@@ -19,18 +19,21 @@ struct student
 
 int add(int ID, char *Fname, char *Lname, int score);
 int delete(int ID);
-int getRowNum(int rowID);
 int display_all();
 int display(int score);
 int getStudentData();
 bool studentExists(int ID);
 void showStudent(struct student s);
 void func(int sockfd);
+void concatenate_string(char *original, char *add);
+void error(char *msg);
 
 #define MAXCHAR 1024
 char* datafile = "data.csv";
 int studentCount;
 struct student students[100];
+char serverMessage[MAXCHAR*2];
+int welcomeSocket, newSocket;
 
 void init()
 {
@@ -92,15 +95,6 @@ int delete(int ID)
     return 0;
 }
 
-int getRowNum(int rowID)
-{
-    getStudentData();
-    for (int i = 0; i < studentCount; ++i)
-        if (students[i].id == rowID)
-            return ++i;
-    return -1;
-}
-
 int display_all()
 {
     getStudentData();
@@ -115,7 +109,7 @@ int display(int score)
     for (int i = 0; i < studentCount; ++i)
         if (students[i].score >= score)
             showStudent(students[i]);
-    return -1;
+    return 0;
 }
 
 bool studentExists(int ID)
@@ -169,11 +163,20 @@ int getStudentData()
 
 void showStudent(struct student s)
 {
-    printf("Student ID:\t%d\n", s.id);
-    printf("First Name:\t%s\n", s.Fname);
-    printf("Last Name:\t%s\n", s.Lname);
-    printf("Grade:\t\t%d\n", s.score);
-    printf("\n");
+    char id[50];
+    char fname[50];
+    char lname[50];
+    char score[50];
+
+    snprintf(id, sizeof(id), "Student ID:\t%d\n", s.id);
+    snprintf(fname, sizeof(fname), "First Name:\t%s\n", s.Fname);
+    snprintf(lname, sizeof(lname), "First Name:\t%s\n", s.Lname);
+    snprintf(score, sizeof(score), "Grade:\t\t%d\n", s.score);
+
+    strcat(serverMessage, id);
+    strcat(serverMessage, fname);
+    strcat(serverMessage, lname);
+    strcat(serverMessage, score);
 }
 
 // Function designed for chat between client and server.
@@ -224,51 +227,12 @@ void error(char *msg)
 
 int main()
 {
-    char buf[] = "add 192893 kecin davis 84";
-    char args[10][25];
-    char * pch;
-    printf ("Splitting string \"%s\" into tokens:\n",buf);
-
-    pch = strtok (buf," ");
-    strcpy(args[0], pch);
-    int argc = 0;
-    while (pch != NULL)
-    {
-        argc++;
-        printf ("%s\n",pch);
-        pch = strtok (NULL, " ,.-");
-        if (pch != NULL)
-            strcpy(args[argc], pch);
-    }
-    if (strncmp("add", args[0], 3) == 0) {
-        if (argc < 5) {
-            printf("expected 4 arguments and got %d", argc);
-            return 0;
-        }
-        add(atoi(args[1]), args[2], args[3], atoi(args[4]));
-    } else if (strncmp("display_all", args[0], 11) == 0) {
-        display_all();
-    } else if (strncmp("showscores", args[0], 10 ) == 0) {
-        if (argc < 2) {
-            printf("expected 2 arguments and got %d", argc);
-            return 0;
-        }
-        display(atoi(args[1]));
-    } else if (strncmp("delete", args[0], 6 ) == 0) {
-        if (argc < 2) {
-            printf("expected 2 arguments and got %d", argc);
-            return 0;
-        }
-        display(atoi(args[1]));
-    }
-    return 0;
     int n, clilen;
     int welcomeSocket, newSocket;
     char buffer[1024];
     struct sockaddr_in serverAddr, clientAddr;
     struct sockaddr_storage serverStorage;
     socklen_t addr_size;
-
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
     welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -309,142 +273,61 @@ int main()
     if (n < 0) error("ERROR reading from socket");
     printf("Here is the message: %s\n",buffer);
 
-    if (strncmp("add", buffer, 3) == 0)
+    char args[10][25];
+    char * pch;
+    printf ("Splitting string \"%s\" into tokens:\n",buffer);
+
+    pch = strtok (buffer," ");
+    strcpy(args[0], pch);
+    int argc = 0;
+    while (pch != NULL)
     {
-        int x = 0;
-        char prompt[50];
-        struct student s;
-        printf("Adding a student to the database\n");
-        while (x < 4)
-        {
-            bzero(buffer, MAX);
+        argc++;
+        printf ("%s\n",pch);
+        pch = strtok (NULL, " ,.-");
+        if (pch != NULL)
+            strcpy(args[argc], pch);
+    }
 
-            // read the message from client and copy it in buffer
-            n = read(newSocket, buffer, sizeof(buffer));
-            switch (x)
-            {
-                case 0:
-                    strcpy(prompt, "Enter the student ID: ");
-                    s.id = atoi(buffer);
-                    printf("s.score is: %d\n", s.id);
-                    break;
-                case 1:
-                    strcpy(prompt, "Enter the first name: ");
-                    strcpy(s.Fname, buffer);
-                    printf("s.Fname is: %s\n", s.Fname);
-                    break;
-                case 2:
-                    strcpy(prompt, "Enter the last name: ");
-                    strcpy(s.Lname, buffer);
-                    printf("s.Lname is: %s\n", s.Lname);
-                    break;
-                case 3:
-                    strcpy(prompt, "Enter the score: ");
-                    s.score = atoi(buffer);
-                    printf("s.score is: %d\n", s.score);
-                    break;
-            }
-            // print buffer which contains the client contents
-//            printf("From client: %s\t To client : ", buffer);
-            bzero(buffer, MAX);
-            n = 0;
-
-            // copy server message in the buffer
-//            while ((buffer[n++] = getchar()) != '\n')
-//                ;
-            strcpy(buffer, prompt);
-
-            // and send that buffer to client
-            n = write(newSocket, buffer, sizeof(buffer));
-            if (n < 0) error("ERROR writing to socket");
-
-
-            x++;
+    if (strncmp("add", args[0], 3) == 0)
+    {
+        if (argc < 5) {
+            printf("expected 4 arguments and got %d", argc);
+            return 0;
         }
-        showStudent(s);
+        add(atoi(args[1]), args[2], args[3], atoi(args[4]));
+        strcpy(serverMessage, "Student added successfully.\n");
 
-    } else if (strncmp("display_all", buffer, 11) == 0) {
+    }
+    else if (strncmp("display_all", args[0], 11) == 0)
+    {
         display_all();
+        printf("serverMessage\n%s", serverMessage);
     }
-    else if (strncmp("showscores", buffer, 10 ) == 0)
+    else if (strncmp("showscores", args[0], 10 ) == 0)
     {
-        int thelen = strlen(buffer);
-        printf("thelen: %d\n", thelen);
-        printf("score is: ");
-        int strt = 10;
-        int end = thelen-2;
-        char thescore[2];
-        printf("buffer[11][12]: %c%c", buffer[11], buffer[12]);
-        if (thelen == 14) {
-
-            thescore[0] = buffer[11];
-            thescore[1] = buffer[12];
-        } else if (thelen == 15) {
-            char thescore[3];
-            thescore[0] = buffer[11];
-            thescore[1] = buffer[12];
-            thescore[1] = buffer[13];
+        if (argc < 2) {
+            printf("expected 2 arguments and got %d", argc);
+            return 0;
         }
-        int score = atoi(thescore);
-        printf("showing scores greater than: %c%c\n", thescore[0],thescore[1]);
-//        for (int q = strt; q < end; ++q) {
-//            printf(buffer[q]);
-//        }
-//        printf("\n");
-
-//        char thescore[strlen(buffer-11)];
-//        for (int q = strlen(buffer-11); q < strlen(buffer); q++) {
-//            thescore[q] = buffer[q];
-//        }
-
-//        int score = -1;
-//        printf("Showing scores greater than:%d\n", atoi(thescore));
-
-        bzero(buffer, MAX);
-        n = 0;
-        strcpy(buffer, "enter the score: ");
-        // and send that buffer to client
-        n = write(newSocket, buffer, sizeof(buffer));
-        if (n < 0) error("ERROR writing to socket");
-        bzero(buffer, MAX);
-        // read the message from client and copy it in buffer
-        n = read(newSocket, buffer, sizeof(buffer));
-        score = atoi(buffer);
-        if (score < 0 || score > 100)
-            error("invalid score");
-        printf("showing scores greater than: %d\n", score);
-        display(score);
-
+        display(atoi(args[1]));
+        printf("serverMessage\n%s", serverMessage);
     }
-    else if (strncmp("delete", buffer, 6 ) == 0)
+    else if (strncmp("delete", args[0], 6 ) == 0)
     {
-        int id = -1;
-        printf("Showing scores\n");
-        bzero(buffer, MAX);
-        n = 0;
-        strcpy(buffer, "enter the id of the student to delete: ");
-        // and send that buffer to client
-        n = write(newSocket, buffer, sizeof(buffer));
-        if (n < 0) error("ERROR writing to socket");
+        if (argc < 2) {
+            printf("expected 2 arguments and got %d", argc);
+            return 0;
+        }
+        delete(atoi(args[1]));
+    } else {
+        printf("%s is not a valid argument", args[0]);
+    }
 
-        bzero(buffer, MAX);
-        // read the message from client and copy it in buffer
-        n = read(newSocket, buffer, sizeof(buffer));
-        id = atoi(buffer);
-        if (id < 0)
-            error("invalid score");
-        printf("deleting student with id: %d\n", id);
-        delete(id);
-    }
-        // if msg contains "Exit" then server exit and end.
-    else if (strncmp("exit", buffer, 4) == 0) {
-        printf("Server Exit...\n");
-//        break;
-    }
+    bzero(buffer, MAX);
+    strcpy(buffer, serverMessage);
+    // and send that buffer to client
+    n = write(newSocket, buffer, sizeof(buffer));
     if (n < 0) error("ERROR writing to socket");
-//    /*---- Send message to the socket of the incoming connection ----*/
-//    strcpy(buffer,"Hello World\n");
-//    send(newSocket,buffer,13,0);
-
     return 0;
 }
