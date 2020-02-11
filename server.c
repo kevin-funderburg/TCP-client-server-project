@@ -7,19 +7,24 @@
 #include <stdbool.h>
 #include<stdlib.h>
 
+int add(int ID, char *Fname, char *Lname, int score);
+int delete(int ID);
+int getRowNum(int rowID);
+int display_all();
 
-#define MAXCHAR 1000
+#define MAXCHAR 1024
+char* datafile = "data.csv";
 
 int add(int ID, char *Fname, char *Lname, int score)
 {
     FILE *fp;
-    char* filename = "data.csv";
-
-    fp = fopen(filename, "a");
-    if (fp == NULL){
-        printf("Could not open file %s",filename);
+    fp = fopen(datafile, "a");
+    if (fp == NULL) {
+        printf("Could not open file %s", datafile);
         return 1;
     }
+    if (getRowNum(ID) != -1)
+        delete(ID);
 
     fprintf(fp, "%d,%s,%s,%d\n", ID, Fname, Lname, score);
     fclose(fp);
@@ -29,85 +34,76 @@ int add(int ID, char *Fname, char *Lname, int score)
 int delete(int ID)
 {
     FILE *fp1, *fp2;
-    char* filename = "data.csv";
+    char str[MAXCHAR];
 
-    fp1 = fopen(filename, "r");
-    if (!fp1)
-    {
+    fp1 = fopen(datafile, "r");
+    if (!fp1) {
         printf(" File not found or unable to open the input file!!\n");
         return 0;
     }
     fp2 = fopen("temp.csv", "w"); // open the temporary file in write mode
-    if (!fp2)
-    {
+    if (!fp2) {
         printf("Unable to open a temporary file to write!!\n");
         fclose(fp1);
         return 0;
     }
 
-//    // copy all contents to the temporary file except the specific line
-//    while (!feof(fp1))
-//    {
-//        strcpy(str, "\0");
-//        fgets(str, MAX, fp1);
-//        if (!feof(fp1))
-//        {
-//            char *field = strtok(buf, ",");
-//
-//            ctr++;
-//            /* skip the line at given line number */
-//            if (ctr != lno)
-//            {
-//                fprintf(fptr2, "%s", str);
-//            }
-//        }
-//    }
-
-    char buf[1024];
-    int row_count = 0;
-    int field_count = 0;
-    bool IDfound = false;
-    while (fgets(buf, 1024, fp1))
+    int ctr = 0;
+    int rowNum = getRowNum(ID);
+    // copy all contents to the temporary file except the specific line
+    while (!feof(fp1))
     {
-        field_count = 0;
-        row_count++;
-
-        if (row_count == 1) {
-            continue;
-        }
-
-        char *field = strtok(buf, ",");
-        while (field) {
-            // only check the first field for the ID
-            if (field_count == 0) {
-                int fieldID = atoi(field); //cast string to int
-                if (fieldID == ID) {
-                    printf("FOUND: %s\n", field);
-                }
+        strcpy(str, "\0");
+        fgets(str, MAXCHAR, fp1);
+        if (!feof(fp1)) {
+            ctr++;
+            /* skip the line at given line number */
+            if (ctr != rowNum) {
+                printf("line to be copied: %s", str);
+                fprintf(fp2, "%s", str);
             }
-            field = strtok(NULL, ",");
-
-            field_count++;
         }
     }
 
     fclose(fp1);
+    fclose(fp2);
+    remove(datafile);  		// remove the original file
+    rename("temp.csv", datafile); 	// rename the temporary file to original name
     return 0;
+}
+
+int getRowNum(int rowID)
+{
+    FILE *fp1;
+    char buf[MAXCHAR];
+    int rowNum = 0;
+
+    fp1 = fopen(datafile, "r");
+    if (!fp1) {
+        printf(" File not found or unable to open the input file!!\n");
+        return 0;
+    }
+    while (fgets(buf, MAXCHAR, fp1)) {
+        rowNum++;
+        char *field = strtok(buf, ",");
+        if (atoi(field) == rowID) return rowNum;
+    }
+    return -1;
 }
 
 int display_all()
 {
-    FILE *fp = fopen("data.csv", "r");
+    FILE *fp = fopen(datafile, "r");
 
     if (!fp) {
         printf("Can't open file\n");
         return 0;
     }
 
-    char buf[1024];
+    char buf[MAXCHAR];
     int row_count = 0;
     int field_count = 0;
-    while (fgets(buf, 1024, fp)) {
+    while (fgets(buf, MAXCHAR, fp)) {
         field_count = 0;
         row_count++;
 
@@ -185,5 +181,5 @@ int main()
 //  strcpy(buffer,"Hello World\n");
 //  send(newSocket,buffer,13,0);
 
-  return 0;
+    return 0;
 }
