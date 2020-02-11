@@ -36,10 +36,10 @@ The server can execute 4 commands the client requests:
 Command line structure:
 
 ```shell
-[add] studentID firstName lastName score
-[display_all] none
-[display] score
-[delete] studentID
+add [studentID] [firstName] [lastName] [score]
+display_all none
+display [score]
+delete [studentID]
 ```
 
 Examples:
