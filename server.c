@@ -145,8 +145,8 @@ int display_all()
 
 int main()
 {
-    delete(623734);
-//    add(728716, "Bobby", "Blippy", 85);
+//    delete(623734);
+    add(728716, "Bobby", "Blippy", 85);
 //    display_all();
 //  int welcomeSocket, newSocket;
 //  char buffer[1024];
