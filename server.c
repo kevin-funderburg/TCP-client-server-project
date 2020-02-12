@@ -204,7 +204,7 @@ int main()
 {
     int n, clilen;
     int welcomeSocket, newSocket;
-    char buffer[1024];
+    char buffer[MAXCHAR];
     struct sockaddr_in serverAddr, clientAddr;
     struct sockaddr_storage serverStorage;
 //    socklen_t addr_size;
@@ -241,68 +241,73 @@ int main()
     if (newSocket < 0)
         error("ERROR on accept");
 
-    bzero(buffer,256);
-    n = read(newSocket,buffer,255);
-    if (n < 0) error("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
-
-    char args[10][25];
-    char * pch;
-    printf ("Splitting string \"%s\" into tokens:\n",buffer);
-
-    pch = strtok (buffer," ");
-    strcpy(args[0], pch);
-    int argc = 0;
-    while (pch != NULL)
+    while (1)
     {
-        argc++;
-        printf ("%s\n",pch);
-        pch = strtok (NULL, " ,.-");
-        if (pch != NULL)
-            strcpy(args[argc], pch);
-    }
+        bzero(buffer, MAXCHAR);
+        // read the message from client and copy it in buffer
+        n = read(newSocket, buffer, MAXCHAR);
+        if (n < 0) error("ERROR reading from socket");
+        printf("Here is the message: %s\n", buffer);
 
-    if (strncmp("add", args[0], 3) == 0)
-    {
-        if (argc < 5) {
-            printf("expected 4 arguments and got %d", argc);
-            snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d", argc);
+//        char **array = malloc(totalstrings * sizeof(char *));
+//        char *ptr;
+//        ptr = (char[][]*)malloc(n * sizeof(int));
+        char args[10][25];
+        char *pch;
+        printf("Splitting string \"%s\" into tokens:\n", buffer);
+
+        pch = strtok(buffer, " ");
+        strcpy(args[0], pch);
+        int argc = 0;
+        while (pch != NULL) {
+            argc++;
+            printf("%s\n", pch);
+            pch = strtok(NULL, " ,.-");
+            if (pch != NULL)
+                strcpy(args[argc], pch);
+            printf("argc: %d", argc);
         }
-        add(atoi(args[1]), args[2], args[3], atoi(args[4]));
-        strcpy(serverMessage, "Student added successfully.\n");
-    }
-    else if (strncmp("display_all", args[0], 11) == 0)
-    {
-        display_all();
-        printf("serverMessage\n%s", serverMessage);
-    }
-    else if (strncmp("showscores", args[0], 10 ) == 0)
-    {
-        if (argc < 2) {
-            printf("expected 2 arguments and got %d", argc);
-            snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
-        }
-        display(atoi(args[1]));
-        printf("serverMessage\n%s", serverMessage);
-    }
-    else if (strncmp("delete", args[0], 6 ) == 0)
-    {
-        if (argc < 2) {
-            printf("expected 2 arguments and got %d", argc);
-            snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
-        }
-        delete(atoi(args[1]));
-        strcpy(serverMessage, "Student deleted successfully.\n");
-    } else {
-        printf("%s is not a valid argument", args[0]);
-        snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument", args[0]);
-    }
 
-    bzero(buffer, MAX);
-    // copy serverMessage to server buffer
-    strcpy(buffer, serverMessage);
-    // and send buffer to client
-    n = write(newSocket, buffer, sizeof(buffer));
-    if (n < 0) error("ERROR writing to socket");
+        if (strncmp("add", args[0], 3) == 0) {
+            if (argc < 5) {
+                printf("expected 4 arguments and got %d", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d", argc);
+            }
+            add(atoi(args[1]), args[2], args[3], atoi(args[4]));
+            strcpy(serverMessage, "Student added successfully.\n");
+        } else if (strncmp("display_all", args[0], 11) == 0) {
+            display_all();
+            printf("serverMessage\n%s", serverMessage);
+        } else if (strncmp("showscores", args[0], 10) == 0) {
+            if (argc < 2) {
+                printf("expected 2 arguments and got %d", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
+            }
+            display(atoi(args[1]));
+            printf("serverMessage\n%s", serverMessage);
+        } else if (strncmp("delete", args[0], 6) == 0) {
+            if (argc < 2) {
+                printf("expected 2 arguments and got %d", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
+            }
+            delete(atoi(args[1]));
+            strcpy(serverMessage, "Student deleted successfully.\n");
+        } else if (strncmp("exit", args[0], 4) == 0) {
+            // if msg contains "Exit" then server exit and chat ended.
+            printf("Server Exit...\n");
+            break;
+        } else {
+            printf("%s is not a valid argument", args[0]);
+            snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument", args[0]);
+        }
+
+        bzero(buffer, MAXCHAR);
+        // copy serverMessage to server buffer
+        strcpy(buffer, serverMessage);
+        // and send buffer to client
+        n = write(newSocket, buffer, sizeof(buffer));
+        if (n < 0) error("ERROR writing to socket");
+    }
+    close(newSocket);
     return 0;
 }

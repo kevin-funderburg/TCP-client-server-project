@@ -48,9 +48,9 @@ int main(){
     addr_size = sizeof serverAddr;
     connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
 
-    bzero(buffer, sizeof(buffer));
-    printf("What do you want to do? : ");
     for (;;) {
+        bzero(buffer, sizeof(buffer));
+        printf("What do you want to do? : ");
         n = 0;
         while ((buffer[n++] = getchar()) != '\n')
             ;
