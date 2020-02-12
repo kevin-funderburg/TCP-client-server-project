@@ -4,17 +4,7 @@
  * @authors: Kevin Funderburg
  */
 
-//#include <stdio.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <string.h>
-//#include <stdbool.h>
-//#include <stdlib.h>
-//#include <sys/types.h>
 #include "server.h"
-#define MAX 150
-//#define PORT 8080
-//#define SA struct sockaddr
 
 #define MAXCHAR 1024
 char* datafile = "data.csv";
@@ -243,15 +233,13 @@ int main()
 
     while (1)
     {
+        memset(serverMessage, 0, sizeof serverMessage);
         bzero(buffer, MAXCHAR);
         // read the message from client and copy it in buffer
         n = read(newSocket, buffer, MAXCHAR);
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n", buffer);
 
-//        char **array = malloc(totalstrings * sizeof(char *));
-//        char *ptr;
-//        ptr = (char[][]*)malloc(n * sizeof(int));
         char args[10][25];
         char *pch;
         printf("Splitting string \"%s\" into tokens:\n", buffer);
