@@ -1,4 +1,8 @@
-/****************** CLIENT CODE ****************/
+/***
+ * TCP Client/Server Project
+ * @file client.c
+ * @authors: Kevin Funderburg
+ */
 
 #include <stdio.h>
 #include <sys/types.h>

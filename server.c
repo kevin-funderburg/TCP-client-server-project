@@ -1,4 +1,8 @@
-/****************** SERVER CODE ****************/
+/***
+ * TCP Client/Server Project
+ * @file server.c
+ * @authors: Kevin Funderburg
+ */
 
 //#include <stdio.h>
 //#include <sys/socket.h>
@@ -23,6 +27,14 @@ void init()
     studentCount = 0;
 }
 
+/**
+ * adds a student to the database
+ * @param ID
+ * @param Fname
+ * @param Lname
+ * @param score
+ * @return
+ */
 int add(int ID, char *Fname, char *Lname, int score) {
     FILE *fp;
     fp = fopen(datafile, "a");
@@ -43,6 +55,11 @@ int add(int ID, char *Fname, char *Lname, int score) {
     return 0;
 }
 
+/**
+ * delete student from database
+ * @param ID
+ * @return
+ */
 int delete(int ID)
 {
     FILE *fp1, *fp2;
@@ -74,6 +91,10 @@ int delete(int ID)
     return 0;
 }
 
+/**
+ * output every student in dataabase
+ * @return
+ */
 int display_all()
 {
     getStudentData();
@@ -82,6 +103,11 @@ int display_all()
     return 0;
 }
 
+/**
+ * show every student who has a score >= score
+ * @param score
+ * @return
+ */
 int display(int score)
 {
     getStudentData();
@@ -98,6 +124,10 @@ bool studentExists(int ID)
     return false;
 }
 
+/**
+ * parses the data from data.csv to create an array of students
+ * @return
+ */
 int getStudentData()
 {
     FILE *fp = fopen(datafile, "r");
@@ -140,6 +170,11 @@ int getStudentData()
     return 0;
 }
 
+/**
+ * creates a compatable string to be passed back to
+ * the client
+ * @param s student structure
+ */
 void showStudent(struct student s)
 {
     char id[50];
