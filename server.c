@@ -92,7 +92,7 @@ int delete(int ID)
 }
 
 /**
- * output every student in dataabase
+ * output every student in database
  * @return
  */
 int display_all()
@@ -266,11 +266,10 @@ int main()
     {
         if (argc < 5) {
             printf("expected 4 arguments and got %d", argc);
-            return 0;
+            snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d", argc);
         }
         add(atoi(args[1]), args[2], args[3], atoi(args[4]));
         strcpy(serverMessage, "Student added successfully.\n");
-
     }
     else if (strncmp("display_all", args[0], 11) == 0)
     {
@@ -281,7 +280,7 @@ int main()
     {
         if (argc < 2) {
             printf("expected 2 arguments and got %d", argc);
-            return 0;
+            snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
         }
         display(atoi(args[1]));
         printf("serverMessage\n%s", serverMessage);
@@ -290,16 +289,19 @@ int main()
     {
         if (argc < 2) {
             printf("expected 2 arguments and got %d", argc);
-            return 0;
+            snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
         }
         delete(atoi(args[1]));
+        strcpy(serverMessage, "Student deleted successfully.\n");
     } else {
         printf("%s is not a valid argument", args[0]);
+        snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument", args[0]);
     }
 
     bzero(buffer, MAX);
+    // copy serverMessage to server buffer
     strcpy(buffer, serverMessage);
-    // and send that buffer to client
+    // and send buffer to client
     n = write(newSocket, buffer, sizeof(buffer));
     if (n < 0) error("ERROR writing to socket");
     return 0;
