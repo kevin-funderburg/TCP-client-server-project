@@ -6,24 +6,8 @@
 
 #include "server.h"
 
-#define MAXCHAR 1024
-char* datafile = "data.csv";
-int studentCount;
-struct student students[100];
-char serverMessage[MAXCHAR];
-
-void init()
-{
-    studentCount = 0;
-}
-
 /**
  * adds a student to the database
- * @param ID
- * @param Fname
- * @param Lname
- * @param score
- * @return
  */
 int add(int ID, char *Fname, char *Lname, int score) {
     FILE *fp;
@@ -47,8 +31,6 @@ int add(int ID, char *Fname, char *Lname, int score) {
 
 /**
  * delete student from database
- * @param ID
- * @return
  */
 int delete(int ID)
 {
@@ -83,7 +65,6 @@ int delete(int ID)
 
 /**
  * output every student in database
- * @return
  */
 int display_all()
 {
@@ -95,8 +76,6 @@ int display_all()
 
 /**
  * show every student who has a score >= score
- * @param score
- * @return
  */
 int display(int score)
 {
@@ -116,7 +95,6 @@ bool studentExists(int ID)
 
 /**
  * parses the data from data.csv to create an array of students
- * @return
  */
 int getStudentData()
 {

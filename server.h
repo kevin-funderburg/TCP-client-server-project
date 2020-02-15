@@ -15,18 +15,17 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define MAX 150
 #define MAXCHAR 1024
-
-
+char* datafile = "data.csv";
+int studentCount;
+struct student students[100];
+char serverMessage[MAXCHAR];
 
 struct student
 {
     int id, score;
     char Fname[25], Lname[25];
 };
-
-
 
 int add(int ID, char *Fname, char *Lname, int score);
 int delete(int ID);
