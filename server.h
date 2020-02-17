@@ -25,7 +25,7 @@ struct student
 char* datafile = "data.csv";
 int studentCount;
 struct student students[100];
-char serverMessage[MAXCHAR];
+char serverMessage[MAXCHAR];    //message sent to client
 
 int add(int ID, char *Fname, char *Lname, int score);
 int delete(int ID);
@@ -33,6 +33,7 @@ int display_all();
 int display(int score);
 int getStudentData();
 bool studentExists(int ID);
+void tableHeader();
 void showStudent(struct student s);
 void error(char *msg);
 void showusage();

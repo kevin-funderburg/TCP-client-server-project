@@ -53,11 +53,11 @@ int main(){
         n = 0;
         while ((buffer[n++] = getchar()) != '\n')
             ;
-//        strcpy()
+
         write(clientSocket, buffer, sizeof(buffer));
         bzero(buffer, sizeof(buffer));
         read(clientSocket, buffer, sizeof(buffer));
-        printf("From Server : %s", buffer);
+        printf("%s", buffer);
 
         if ((strncmp(buffer, "exit", 4)) == 0) {
             printf("Client Exit...\n");

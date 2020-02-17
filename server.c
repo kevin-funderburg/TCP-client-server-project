@@ -69,6 +69,7 @@ int delete(int ID)
 int display_all()
 {
     getStudentData();
+    tableHeader();
     for (int i = 0; i < studentCount; ++i)
         showStudent(students[i]);
     return 0;
@@ -121,16 +122,16 @@ int getStudentData()
             switch (field_count)
             {
                 case 0:
-                    students[row_count-2].id = atoi(field);
+                    students[row_count - 2].id = atoi(field);
                     break;
                 case 1:
-                    strcpy(students[row_count-2].Fname, field);
+                    strcpy(students[row_count - 2].Fname, field);
                     break;
                 case 2:
-                    strcpy(students[row_count-2].Lname, field);
+                    strcpy(students[row_count - 2].Lname, field);
                     break;
                 case 3:
-                    students[row_count-2].score = atoi(field);
+                    students[row_count - 2].score = atoi(field);
                     break;
                 default:
                     printf("invalid field_count");
@@ -144,26 +145,29 @@ int getStudentData()
 }
 
 /**
- * creates a compatable string to be passed back to
+ * adds a header for outputting the table
+ */
+void tableHeader()
+{
+    char str[MAXCHAR];
+    snprintf(str, sizeof(str), "------------------------------------------------------\n"
+                               "%-15s%-15s%-15s%-15s\n"
+                               "------------------------------------------------------\n",
+                               "Student ID", "First Name", "Last Name", "Grade");
+    strcat(serverMessage, str);
+}
+
+/**
+ * creates a compatible string to be passed back to
  * the client
  * @param s student structure
  */
 void showStudent(struct student s)
 {
-    char id[50];
-    char fname[50];
-    char lname[50];
-    char score[50];
-
-    snprintf(id, sizeof(id), "Student ID:\t%d\n", s.id);
-    snprintf(fname, sizeof(fname), "First Name:\t%s\n", s.Fname);
-    snprintf(lname, sizeof(lname), "First Name:\t%s\n", s.Lname);
-    snprintf(score, sizeof(score), "Grade:\t\t%d\n\n", s.score);
-
-    strcat(serverMessage, id);
-    strcat(serverMessage, fname);
-    strcat(serverMessage, lname);
-    strcat(serverMessage, score);
+    char str[MAXCHAR];
+    snprintf(str, sizeof(str), "%-15d%-15s%-15s%-5d\n",
+             s.id, s.Fname, s.Lname, s.score);
+    strcat(serverMessage, str);
 }
 
 
@@ -179,13 +183,11 @@ int main()
     int welcomeSocket, newSocket;
     char buffer[MAXCHAR];
     struct sockaddr_in serverAddr, clientAddr;
-    struct sockaddr_storage serverStorage;
-//    socklen_t addr_size;
+
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
     welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (welcomeSocket < 0)
-        error("ERROR opening socket");
+    if (welcomeSocket < 0) error("ERROR opening socket");
 
     /*---- Configure settings of the server address struct ----*/
     /* Address family = Internet */
@@ -207,12 +209,10 @@ int main()
         printf("Error\n");
 
     /*---- Accept call creates a new socket for the incoming connection ----*/
-//    addr_size = sizeof serverStorage;
     clilen = sizeof(clientAddr);
 
     newSocket = accept(welcomeSocket, (struct sockaddr *) &clientAddr, &clilen);
-    if (newSocket < 0)
-        error("ERROR on accept");
+    if (newSocket < 0) error("ERROR on accept");
 
     while (1)
     {
@@ -246,9 +246,11 @@ int main()
             }
             add(atoi(args[1]), args[2], args[3], atoi(args[4]));
             strcpy(serverMessage, "Student added successfully.\n");
+
         } else if (strncmp("display_all", args[0], 11) == 0) {
             display_all();
             printf("serverMessage\n%s", serverMessage);
+
         } else if (strncmp("showscores", args[0], 10) == 0) {
             if (argc < 2) {
                 printf("expected 2 arguments and got %d", argc);
@@ -256,6 +258,7 @@ int main()
             }
             display(atoi(args[1]));
             printf("serverMessage\n%s", serverMessage);
+
         } else if (strncmp("delete", args[0], 6) == 0) {
             if (argc < 2) {
                 printf("expected 2 arguments and got %d", argc);
@@ -263,10 +266,13 @@ int main()
             }
             delete(atoi(args[1]));
             strcpy(serverMessage, "Student deleted successfully.\n");
+
         } else if (strncmp("exit", args[0], 4) == 0) {
             // if msg contains "Exit" then server exit and chat ended.
             printf("Server Exit...\n");
+            strcpy(serverMessage, "exit");
             break;
+
         } else {
             printf("%s is not a valid argument", args[0]);
             snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument", args[0]);
