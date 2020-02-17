@@ -7,7 +7,7 @@
 #include "server.h"
 
 /**
- * adds a student to the database
+ * add a student to the database
  */
 int add(int ID, char *Fname, char *Lname, int score) {
     FILE *fp;
@@ -95,7 +95,7 @@ bool studentExists(int ID)
 }
 
 /**
- * parses the data from data.csv to create an array of students
+ * parse the data from data.csv to create an array of students
  */
 int getStudentData()
 {
@@ -195,6 +195,7 @@ int main()
     /* Set port number, using htons function to use proper byte order */
     serverAddr.sin_port = htons(7891);
     /* Set IP address to localhost */
+    // zeus server = 147.26.231.156
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     /* Set all bits of the padding field to 0 */
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);

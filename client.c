@@ -49,7 +49,13 @@ int main(){
 
     for (;;) {
         bzero(buffer, sizeof(buffer));
-        printf("What do you want to do? : ");
+        printf("The following are commands you can make:\n"
+               "1. add [student ID] [First Name] [Last Name] [Grade]\n"
+               "2. display_all\n"
+               "3. showscores [grade]\n"
+               "4. delete [student ID]\n"
+               "5. exit\n"
+               "What would you like to do? : ");
         n = 0;
         while ((buffer[n++] = getchar()) != '\n')
             ;
@@ -64,26 +70,5 @@ int main(){
             break;
         }
     }
-
-//    printf("Please enter the message: ");
-//    bzero(buffer,256);
-//    fgets(buffer,255,stdin);
-//    n = write(clientSocket,buffer,strlen(buffer));
-//    if (n < 0)
-//        error("ERROR writing to socket");
-//
-//    bzero(buffer,256);
-//
-//    /*---- Read the message from the server into the buffer ----*/
-//    n = read(clientSocket, buffer, 1024);
-////    recv(clientSocket, buffer, 1024, 0);
-//    if (n < 0)
-//        error("ERROR reading from socket");
-//
-//    printf("%s\n",buffer);
-
-    /*---- Print the received message ----*/
-//    printf("Data received: %s",buffer);
-
     return 0;
 }
