@@ -20,7 +20,6 @@ void error(char *msg)
     perror(msg);
     exit(0);
 }
-#include <string.h>
 
 int main(){
     int clientSocket, n;

@@ -120,15 +120,20 @@ int getStudentData()
         {
             switch (field_count)
             {
-                case 0: students[row_count-2].id = atoi(field);
+                case 0:
+                    students[row_count-2].id = atoi(field);
                     break;
-                case 1: strcpy(students[row_count-2].Fname, field);
+                case 1:
+                    strcpy(students[row_count-2].Fname, field);
                     break;
-                case 2: strcpy(students[row_count-2].Lname, field);
+                case 2:
+                    strcpy(students[row_count-2].Lname, field);
                     break;
-                case 3: students[row_count-2].score = atoi(field);
+                case 3:
+                    students[row_count-2].score = atoi(field);
                     break;
-                default: printf("invalid field_count");
+                default:
+                    printf("invalid field_count");
                     return -1;
             }
             field = strtok(NULL, ",");
