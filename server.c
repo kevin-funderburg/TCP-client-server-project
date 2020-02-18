@@ -72,7 +72,7 @@ int display_all()
     tableHeader();
     for (int i = 0; i < studentCount; ++i)
         showStudent(students[i]);
-    strcat(serverMessage, "------------------------------------------------------\n\n");
+    strcat(svrMessage, "------------------------------------------------------\n\n");
     return 0;
 }
 
@@ -86,7 +86,7 @@ int display(int score)
     for (int i = 0; i < studentCount; ++i)
         if (students[i].score >= score)
             showStudent(students[i]);
-    strcat(serverMessage, "------------------------------------------------------\n\n");
+    strcat(svrMessage, "------------------------------------------------------\n\n");
     return 0;
 }
 
@@ -97,6 +97,11 @@ bool studentExists(int ID)
         if (students[i].id == ID) return true;
     return false;
 }
+
+/**
+ * check student ID is valid
+ */
+bool idValid(char* id) { return (strlen(id) == 6); }
 
 /**
  * parse the data from data.csv to create an array of students
@@ -149,7 +154,7 @@ int getStudentData()
 }
 
 /**
- * adds a header for outputting the table
+ * add a header for outputting the table
  */
 void tableHeader()
 {
@@ -157,13 +162,13 @@ void tableHeader()
     snprintf(str, sizeof(str), "\n\n------------------------------------------------------\n"
                                "%-15s%-15s%-15s%-15s\n"
                                "------------------------------------------------------\n",
-             "Student ID", "First Name", "Last Name", "Grade");
-    strcat(serverMessage, str);
+                               "Student ID", "First Name", "Last Name", "Grade");
+    strcat(svrMessage, str);
 }
 
 /**
- * creates a compatible string to be passed back to
- * the client
+ * create a compatible string from student data
+ * to be passed back to passed to the client
  * @param s student structure
  */
 void showStudent(struct student s)
@@ -171,7 +176,29 @@ void showStudent(struct student s)
     char str[MAXCHAR];
     snprintf(str, sizeof(str), "%-15d%-15s%-15s%-5d\n",
              s.id, s.Fname, s.Lname, s.score);
-    strcat(serverMessage, str);
+    strcat(svrMessage, str);
+}
+
+/**
+ * show usage listing
+ */
+void showusage()
+{
+    strcpy(svrMessage, "\nUSAGE\n"
+                          "\t[adasdeh] [a add] [da delete_all] [s showscores] [d delete] [e exit] [h help]\n"
+                          "\ta add\n"
+                          "\t\tadds a student to the database with the following parameters:\n"
+                          "\t\t[student ID] [First Name] [Last Name] [Grade]\n"
+                          "\tda display_all\n"
+                          "\t\tdisplay all student data in database\n"
+                          "\ts showscores\n"
+                          "\t\tshow all students with a grade higher than [grade]\n"
+                          "\td delete\n"
+                          "\t\tdelete a student from data base with student ID = [student ID]\n"
+                          "\te exit\n"
+                          "\t\texit the application\n"
+                          "\th help\n"
+                          "\t\toutputs usage listing\n\n");
 }
 
 void error(char *msg)
@@ -179,8 +206,6 @@ void error(char *msg)
     perror(msg);
     exit(1);
 }
-
-bool idValid(char* id) { return (strlen(id) == 6); }
 
 int main()
 {
@@ -201,8 +226,8 @@ int main()
     /* Set port number, using htons function to use proper byte order */
     serverAddr.sin_port = htons(7891);
     /* Set IP address to localhost */
-    // serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // local host
-    serverAddr.sin_addr.s_addr = inet_addr("147.26.231.156"); // zeus server
+     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // local host
+//    serverAddr.sin_addr.s_addr = inet_addr("147.26.231.156"); // zeus server
     /* Set all bits of the padding field to 0 */
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
 
@@ -223,7 +248,7 @@ int main()
 
     while (1)
     {
-        memset(serverMessage, 0, sizeof serverMessage);
+        memset(svrMessage, 0, sizeof svrMessage);
         bzero(buffer, MAXCHAR);
         // read the message from client and copy it in buffer
         n = read(newSocket, buffer, MAXCHAR);
@@ -239,7 +264,7 @@ int main()
         while (pch != NULL)
         {
             argc++;
-            pch = strtok(NULL, " ,.-");
+            pch = strtok(NULL, " ,.-\n");
             if (pch != NULL)
                 strcpy(args[argc], pch);
         }
@@ -252,82 +277,75 @@ int main()
         {
             if (argc < 5) {
                 printf("expected 4 arguments and got %d\n", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d\n", argc-1);
+                snprintf(svrMessage, sizeof(svrMessage), "expected 4 arguments and got %d\n", argc - 1);
             } else if (!idValid(args[1])) {
-                strcpy(serverMessage, "Invalid student ID, must be 6 digits long.\n");
+                strcpy(svrMessage, "Invalid student ID, must be 6 digits long.\n");
             } else if (studentExists(atoi(args[1]))) {
-                strcpy(serverMessage, "Student already in database.\n");
+                strcpy(svrMessage, "Student already in database.\n");
             } else
                 valid = true;
 
             if (valid) {
                 add(atoi(args[1]), args[2], args[3], atoi(args[4]));
-                strcpy(serverMessage, "Student added successfully.\n");
+                strcpy(svrMessage, "Student added successfully.\n");
             }
         }
         else if (strncmp("display_all", args[0], 11) == 0 || (strncmp("da", args[0], 2) == 0))
         {
             display_all();
-            printf("\n%s", serverMessage);
+            printf("\n%s", svrMessage);
         }
         else if (strncmp("showscores", args[0], 10) == 0 || (strncmp("s", args[0], 1) == 0))
         {
             if (argc < 2) {
                 printf("expected 2 arguments and got %d\n", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d\n", argc);
+                snprintf(svrMessage, sizeof(svrMessage), "expected 2 arguments and got %d\n", argc);
             } else if (strlen(args[1]) == 0 || (strlen(args[1])) > 3) {
-                strcpy(serverMessage, "Invalid score, must be 1 to 3 digits long.\n");
+                strcpy(svrMessage, "Invalid score, must be 1 to 3 digits long.\n");
             } else
                 valid = true;
 
             if (valid) {
                 display(atoi(args[1]));
-                printf("\n%s", serverMessage);
+                printf("\n%s", svrMessage);
             }
         }
         else if (strncmp("delete", args[0], 6) == 0 || (strncmp("d", args[0], 1) == 0))
         {
             if (argc < 2) {
                 printf("expected 2 arguments and got %d\n", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d\n", argc);
+                snprintf(svrMessage, sizeof(svrMessage), "expected 2 arguments and got %d\n", argc);
             } else if (!idValid(args[1])) {
-                strcpy(serverMessage, "Invalid student ID, must be 6 digits long.\n");
+                strcpy(svrMessage, "Invalid student ID, must be 6 digits long.\n");
             } else if (!studentExists(atoi(args[1]))) {
-                strcpy(serverMessage, "Student not found.\n");
+                strcpy(svrMessage, "Student not found.\n");
             } else
                 valid = true;
 
             if (valid) {
                 delete(atoi(args[1]));
-                strcpy(serverMessage, "Student deleted successfully.\n");
+                strcpy(svrMessage, "Student deleted successfully.\n");
             }
         }
         else if (strncmp("help", args[0], 6) == 0 || (strncmp("h", args[0], 1) == 0))
         {
-            strcpy(serverMessage, "\nUSAGE\n\t[adasdeh] [a add] [da delete_all] [s showscores] [d delete] [e exit] [h help]\n"
-                                  "\ta add\n\t\tadds a student to the database with the following parameters: "
-                                  "[student ID] [First Name] [Last Name] [Grade]\n"
-                                  "\tda display_all\n\t\tdisplay all student data in database\n"
-                                  "\ts showscores\n\t\tshow all students with a grade higher than [grade]\n"
-                                  "\td delete\n\t\tdelete a student from data base with student ID = [student ID]\n"
-                                  "\te exit\n\t\texit the application\n"
-                                  "\th help\n\t\toutputs usage listing\n\n");
+            showusage();
         }
         else if (strncmp("exit", args[0], 4) == 0 || (strncmp("e", args[0], 1) == 0))
         {
             // if msg contains "Exit" then server exit and chat ended.
             printf("Server Exit...\n");
-            strcpy(serverMessage, "exit");
+            strcpy(svrMessage, "exit");
             exit = true;
         }
         else {
             printf("%s is not a valid argument\n", args[0]);
-            snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument\n", args[0]);
+            snprintf(svrMessage, sizeof(svrMessage), "%s is not a valid argument\n", args[0]);
         }
 
         bzero(buffer, MAXCHAR);
-        // copy serverMessage to server buffer
-        strcpy(buffer, serverMessage);
+        // copy svrMessage to server buffer
+        strcpy(buffer, svrMessage);
         // and send buffer to client
         n = write(newSocket, buffer, sizeof(buffer));
         if (n < 0) error("ERROR writing to socket");

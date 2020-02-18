@@ -26,7 +26,7 @@ struct student
 struct student students[100];
 char* datafile = "data.csv";
 int studentCount;
-char serverMessage[MAXCHAR];    //message sent to client
+char svrMessage[MAXCHAR];    //message sent to client
 
 int add(int, char*, char*, int);
 int delete(int);
