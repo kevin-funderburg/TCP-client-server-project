@@ -30,7 +30,10 @@ make clean
 
 Once compiled, begin the server with `./server` then the client with `./client`.
 
-The client will then show `What would you like to do? (enter h for help) :`
+The client will then show:
+
+    What would you like to do? (enter h for help) :
+
 At this point you can follow the commands as listed below.
 
 ### Command line structure:
