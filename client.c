@@ -49,13 +49,7 @@ int main(){
 
     for (;;) {
         bzero(buffer, sizeof(buffer));
-        printf("The following are commands you can make:\n"
-               "1. add [student ID] [First Name] [Last Name] [Grade]\n"
-               "2. display_all\n"
-               "3. showscores [grade]\n"
-               "4. delete [student ID]\n"
-               "5. exit\n"
-               "What would you like to do? : ");
+        printf("What would you like to do? (enter h for help) : ");
         n = 0;
         while ((buffer[n++] = getchar()) != '\n')
             ;
@@ -63,12 +57,12 @@ int main(){
         write(clientSocket, buffer, sizeof(buffer));
         bzero(buffer, sizeof(buffer));
         read(clientSocket, buffer, sizeof(buffer));
-        printf("%s", buffer);
 
         if ((strncmp(buffer, "exit", 4)) == 0) {
             printf("Client Exit...\n");
             break;
-        }
+        } else
+            printf("%s", buffer);
     }
     return 0;
 }

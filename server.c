@@ -37,7 +37,7 @@ int delete(int ID)
     FILE *fp1, *fp2;
     fp1 = fopen(datafile, "r");
     if (!fp1) {
-        printf(" File not found or unable to open the input file!!\n");
+        printf("File not found or unable to open the input file!!\n");
         return 0;
     }
     fp2 = fopen("temp.csv", "w"); // open the temporary file in write mode
@@ -72,6 +72,7 @@ int display_all()
     tableHeader();
     for (int i = 0; i < studentCount; ++i)
         showStudent(students[i]);
+    strcat(serverMessage, "------------------------------------------------------\n\n");
     return 0;
 }
 
@@ -81,14 +82,17 @@ int display_all()
 int display(int score)
 {
     getStudentData();
+    tableHeader();
     for (int i = 0; i < studentCount; ++i)
         if (students[i].score >= score)
             showStudent(students[i]);
+    strcat(serverMessage, "------------------------------------------------------\n\n");
     return 0;
 }
 
 bool studentExists(int ID)
 {
+    getStudentData();
     for (int i = 0; i < studentCount; ++i)
         if (students[i].id == ID) return true;
     return false;
@@ -104,8 +108,8 @@ int getStudentData()
         printf("Can't open file\n");
         return 0;
     }
-    char buf[MAXCHAR];
 
+    char buf[MAXCHAR];
     studentCount = 0;
     int field_count = 0;
     int row_count = 0;
@@ -150,10 +154,10 @@ int getStudentData()
 void tableHeader()
 {
     char str[MAXCHAR];
-    snprintf(str, sizeof(str), "------------------------------------------------------\n"
+    snprintf(str, sizeof(str), "\n\n------------------------------------------------------\n"
                                "%-15s%-15s%-15s%-15s\n"
                                "------------------------------------------------------\n",
-                               "Student ID", "First Name", "Last Name", "Grade");
+             "Student ID", "First Name", "Last Name", "Grade");
     strcat(serverMessage, str);
 }
 
@@ -170,12 +174,13 @@ void showStudent(struct student s)
     strcat(serverMessage, str);
 }
 
-
 void error(char *msg)
 {
     perror(msg);
     exit(1);
 }
+
+bool idValid(char* IDstr) { return (strlen(IDstr) == 6); }
 
 int main()
 {
@@ -183,6 +188,7 @@ int main()
     int welcomeSocket, newSocket;
     char buffer[MAXCHAR];
     struct sockaddr_in serverAddr, clientAddr;
+    bool exit = false;
 
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
@@ -227,56 +233,96 @@ int main()
         char args[10][25];
         char *pch;
         printf("Splitting string \"%s\" into tokens:\n", buffer);
-
+        // parse args
         pch = strtok(buffer, " ");
         strcpy(args[0], pch);
         int argc = 0;
-        while (pch != NULL) {
+        while (pch != NULL)
+        {
             argc++;
-            printf("%s\n", pch);
             pch = strtok(NULL, " ,.-");
             if (pch != NULL)
                 strcpy(args[argc], pch);
-            printf("argc: %d", argc);
         }
+        for (int i = 0; i < argc; ++i)
+            printf("args[%d]\t%s\n", i, args[i]);
 
-        if (strncmp("add", args[0], 3) == 0) {
+        bool valid = false;
+        if ((strncmp("add", args[0], 3) == 0) || (strncmp("a", args[0], 1) == 0))
+        {
             if (argc < 5) {
-                printf("expected 4 arguments and got %d", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d", argc);
-            }
-            add(atoi(args[1]), args[2], args[3], atoi(args[4]));
-            strcpy(serverMessage, "Student added successfully.\n");
+                printf("expected 4 arguments and got %d\n", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 4 arguments and got %d\n", argc-1);
+            } else if (!idValid(args[1])) {
+                strcpy(serverMessage, "Invalid student ID, must be 6 digits long.\n");
+            } else if (studentExists(atoi(args[1]))) {
+                strcpy(serverMessage, "Student already in database.\n");
+            } else
+                valid = true;
 
-        } else if (strncmp("display_all", args[0], 11) == 0) {
+            if (valid) {
+                add(atoi(args[1]), args[2], args[3], atoi(args[4]));
+                strcpy(serverMessage, "Student added successfully.\n");
+            }
+        }
+        else if (strncmp("display_all", args[0], 11) == 0 || (strncmp("da", args[0], 2) == 0))
+        {
             display_all();
             printf("serverMessage\n%s", serverMessage);
-
-        } else if (strncmp("showscores", args[0], 10) == 0) {
+        }
+        else if (strncmp("showscores", args[0], 10) == 0 || (strncmp("s", args[0], 1) == 0))
+        {
             if (argc < 2) {
-                printf("expected 2 arguments and got %d", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
-            }
-            display(atoi(args[1]));
-            printf("serverMessage\n%s", serverMessage);
+                printf("expected 2 arguments and got %d\n", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d\n", argc);
+            } else if (strlen(args[1]) == 0 || (strlen(args[1])) > 3) {
+                strcpy(serverMessage, "Invalid score, must be 1 to 3 digits long.\n");
+            } else
+                valid = true;
 
-        } else if (strncmp("delete", args[0], 6) == 0) {
+            if (valid) {
+                display(atoi(args[1]));
+                printf("serverMessage\n%s", serverMessage);
+            }
+        }
+        else if (strncmp("delete", args[0], 6) == 0 || (strncmp("d", args[0], 1) == 0))
+        {
             if (argc < 2) {
-                printf("expected 2 arguments and got %d", argc);
-                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d", argc);
-            }
-            delete(atoi(args[1]));
-            strcpy(serverMessage, "Student deleted successfully.\n");
+                printf("expected 2 arguments and got %d\n", argc);
+                snprintf(serverMessage, sizeof(serverMessage), "expected 2 arguments and got %d\n", argc);
+            } else if (!idValid(args[1])) {
+                strcpy(serverMessage, "Invalid student ID, must be 6 digits long.\n");
+            } else if (!studentExists(atoi(args[1]))) {
+                strcpy(serverMessage, "Student not found.\n");
+            } else
+                valid = true;
 
-        } else if (strncmp("exit", args[0], 4) == 0) {
+            if (valid) {
+                delete(atoi(args[1]));
+                strcpy(serverMessage, "Student deleted successfully.\n");
+            }
+        }
+        else if (strncmp("help", args[0], 6) == 0 || (strncmp("h", args[0], 1) == 0))
+        {
+            strcpy(serverMessage, "\nUSAGE\n\t[adasdeh] [a add] [da delete_all] [s showscores] [d delete] [e exit] [h help]\n"
+                                  "\ta add\n\t\tadds a student to the database with the following parameters: "
+                                  "[student ID] [First Name] [Last Name] [Grade]\n"
+                                  "\tda display_all\n\t\tdisplay all student data in database\n"
+                                  "\ts showscores\n\t\tshow all students with a grade higher than [grade]\n"
+                                  "\td delete\n\t\tdelete a student from data base with student ID = [student ID]\n"
+                                  "\te exit\n\t\texit the application\n"
+                                  "\th help\n\t\toutputs usage listing\n\n");
+        }
+        else if (strncmp("exit", args[0], 4) == 0 || (strncmp("e", args[0], 1) == 0))
+        {
             // if msg contains "Exit" then server exit and chat ended.
             printf("Server Exit...\n");
             strcpy(serverMessage, "exit");
-            break;
-
-        } else {
-            printf("%s is not a valid argument", args[0]);
-            snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument", args[0]);
+            exit = true;
+        }
+        else {
+            printf("%s is not a valid argument\n", args[0]);
+            snprintf(serverMessage, sizeof(serverMessage), "%s is not a valid argument\n", args[0]);
         }
 
         bzero(buffer, MAXCHAR);
@@ -285,6 +331,7 @@ int main()
         // and send buffer to client
         n = write(newSocket, buffer, sizeof(buffer));
         if (n < 0) error("ERROR writing to socket");
+        if (exit) break;
     }
     close(newSocket);
     return 0;
