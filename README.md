@@ -2,8 +2,7 @@
 
 Author: Kevin Funderburg
 
-<details>
-  <summary><strong>Table of Contents</strong> (click to expand)</summary>
+
 <!-- TOC depthFrom:2 -->
 
 - [About](#about)
@@ -15,7 +14,7 @@ Author: Kevin Funderburg
 - [Changelog](#changelog)
 
 <!-- /TOC -->
-</details>
+
 
 ## About
 The goal of this project is to gain a fundamental understanding of the interactions between clients and servers via TCP. This is shown through development of a school database system, where clients can make requests to a server, the server then processes the requests and returns the results.
@@ -36,7 +35,7 @@ At this point you can follow the commands as listed below.
 
 ### Command line structure:
 
-```shell
+```
 [adasdeh] [a add] [da delete_all] [s showscores] [d delete] [e exit] [h help]
 
 a add
