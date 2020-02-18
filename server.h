@@ -28,16 +28,16 @@ char* datafile = "data.csv";
 int studentCount;
 char serverMessage[MAXCHAR];    //message sent to client
 
-int add(int ID, char *Fname, char *Lname, int score);
-int delete(int ID);
+int add(int, char*, char*, int);
+int delete(int);
 int display_all();
-int display(int score);
+int display(int);
 int getStudentData();
-bool studentExists(int ID);
+bool studentExists(int);
 bool idValid(char*);
 void tableHeader();
-void showStudent(struct student s);
-void error(char *msg);
+void showStudent(struct student);
+void error(char*);
 void showusage();
 
 #endif //SERVER_H

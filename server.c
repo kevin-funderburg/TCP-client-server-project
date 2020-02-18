@@ -180,7 +180,7 @@ void error(char *msg)
     exit(1);
 }
 
-bool idValid(char* IDstr) { return (strlen(IDstr) == 6); }
+bool idValid(char* id) { return (strlen(id) == 6); }
 
 int main()
 {
@@ -232,7 +232,6 @@ int main()
 
         char args[10][25];
         char *pch;
-        printf("Splitting string \"%s\" into tokens:\n", buffer);
         // parse args
         pch = strtok(buffer, " ");
         strcpy(args[0], pch);
@@ -244,6 +243,7 @@ int main()
             if (pch != NULL)
                 strcpy(args[argc], pch);
         }
+        printf("parsed args:\n");
         for (int i = 0; i < argc; ++i)
             printf("args[%d]\t%s\n", i, args[i]);
 
@@ -268,7 +268,7 @@ int main()
         else if (strncmp("display_all", args[0], 11) == 0 || (strncmp("da", args[0], 2) == 0))
         {
             display_all();
-            printf("serverMessage\n%s", serverMessage);
+            printf("\n%s", serverMessage);
         }
         else if (strncmp("showscores", args[0], 10) == 0 || (strncmp("s", args[0], 1) == 0))
         {
@@ -282,7 +282,7 @@ int main()
 
             if (valid) {
                 display(atoi(args[1]));
-                printf("serverMessage\n%s", serverMessage);
+                printf("\n%s", serverMessage);
             }
         }
         else if (strncmp("delete", args[0], 6) == 0 || (strncmp("d", args[0], 1) == 0))
