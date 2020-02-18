@@ -25,27 +25,33 @@ make clean
 ```
 Once compiled, begin the server with `./server` and the client with `.client`.
 
-The client will then show `What do you want to do?`
+The client will then show `What would you like to do? (enter h for help) :`
 
-The server can execute 4 commands the client requests:
-1. `add` to add a student to the database.
-2. `display_all` to show all the students in the database.
-3. `showscores`to show all the students whose score are greater than a desired number.
-4. `delete` delete a student from the database.
-
-Command line structure:
+### Command line structure:
 
 ```shell
-add [studentID] [firstName] [lastName] [score]
-display_all none
-display [score]
-delete [studentID]
+[adasdeh] [a add] [da delete_all] [s showscores] [d delete] [e exit] [h help]
+
+a add
+    adds a student to the database with the following parameters:
+    [student ID] [First Name] [Last Name] [Grade]
+da display_all
+    display all student data in database
+s showscores
+    show all students with a grade higher than [grade]
+d delete
+    delete a student from data base with student ID = [student ID]
+e exit
+    exit the application
+h help
+    outputs usage listing
+
 ```
 
-Examples:
+### Examples:
 ```shell
-add 291892 Francois Butter 86
-display_all
+a 291892 Francois Butter 86
+da
 showscores 75
 delete 748393
 ```
