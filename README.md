@@ -24,8 +24,8 @@ The goal of this project is to gain a fundamental understanding of the interacti
 ### Make commands
 
 ```shell
-make
-make clean
+make - compile and create executables
+make clean - reset executables and object files
 ```
 
 Once compiled, begin the server with `./server` then the client with `./client`.
